@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
 export default class {
 	users: User[];
-	constructor({ users }: { users: User[] }) {
+	constructor(users: User[]) {
 		this.users = users ?? [];
 	}
 	getAll = () => this.users;

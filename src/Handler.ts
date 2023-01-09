@@ -11,12 +11,22 @@ export default class {
 
 	GET = (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
 		res.setHeader('Content-Type', 'application/json');
+		const currentURL = new URL(
+			req.url || '/',
+			`http://${req.headers.host}`
+		);
+		const userId: string = parseId(this.route, currentURL.pathname);
 		const result: User[] = this.users.getAll();
 		res.statusCode = 200;
 		res.end(JSON.stringify(result));
 	};
 	POST = (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
 		res.setHeader('Content-Type', 'application/json');
+		const currentURL = new URL(
+			req.url || '/',
+			`http://${req.headers.host}`
+		);
+		const userId: string = parseId(this.route, currentURL.pathname);
 		const body: string[] = [];
 		req.on('data', (chunk) => body.push(chunk.toString())).on('end', () => {
 			const result = this.users.create(JSON.parse(body.join()));
@@ -26,10 +36,17 @@ export default class {
 	};
 	PUT = (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
 		res.setHeader('Content-Type', 'application/json');
+		const currentURL = new URL(
+			req.url || '/',
+			`http://${req.headers.host}`
+		);
+		const userId: string = parseId(this.route, currentURL.pathname);
 		const body: string[] = [];
 		req.on('data', (chunk) => body.push(chunk.toString())).on('end', () => {
-			const result = this.users.updateById('ID', JSON.parse(body.join()));
-
+			const result = this.users.updateById(
+				userId,
+				JSON.parse(body.join())
+			);
 			res.statusCode = 200;
 			res.end(JSON.stringify(result));
 		});
