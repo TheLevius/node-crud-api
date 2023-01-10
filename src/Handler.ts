@@ -10,12 +10,12 @@ export default class {
 	}
 
 	GET = (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
-		res.setHeader('Content-Type', 'application/json');
-		const currentURL = new URL(
-			req.url || '/',
-			`http://${req.headers.host}`
-		);
-		const userId: string = parseId(this.route, currentURL.pathname);
+		// res.setHeader('Content-Type', 'application/json');
+		// const currentURL = new URL(
+		// 	req.url || '/',
+		// 	`http://${req.headers.host}`
+		// );
+		// const userId: string = parseId(this.route, currentURL.pathname);
 		const result: User[] = this.users.getAll();
 		res.statusCode = 200;
 		res.end(JSON.stringify(result));

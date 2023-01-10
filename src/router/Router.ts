@@ -87,7 +87,7 @@ export default class {
 
 				if (
 					verbHandlers !== undefined &&
-					verbHandlers[req.method] !== undefined
+					verbHandlers.hasOwnProperty(req.method)
 				) {
 					verbHandlers[req.method](req, res);
 					return;
@@ -98,9 +98,14 @@ export default class {
 					return;
 				}
 			} else {
-				res.statusCode = 400;
-				res.setHeader('Content-Type', 'text/plain');
-				res.end('Bad Request');
+				res.statusCode = 404;
+				res.setHeader('Content-Type', 'application/json');
+				res.end(
+					JSON.stringify({
+						message: 'Requests to non-existing endpoints',
+						status: `ERROR ${res.statusCode}`,
+					})	
+				);
 				return;
 			}
 		} else {

@@ -7,6 +7,7 @@ export default class {
 		this.usersService = usersService;
 	}
 	getAll = (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
+		res.setHeader('Content-Type', 'application/json');
 		const result = this.usersService.getAll();
 		res.statusCode = 200;
 		res.end(JSON.stringify(result));
@@ -15,8 +16,8 @@ export default class {
 		req: IncomingMessageWithParams,
 		res: ServerResponse<IncomingMessageWithParams>
 	) => {
+		res.setHeader('Content-Type', 'application/json');
 		const userId = req.params.id;
-
 		const result = this.usersService.findOneById(userId);
 		if (result.status === Statuses.OK) {
 			res.statusCode = 200;
@@ -29,6 +30,7 @@ export default class {
 		req: IncomingMessage,
 		res: ServerResponse<IncomingMessage>
 	) => {
+		res.setHeader('Content-Type', 'application/json');
 		const body: string[] = [];
 		req.on('data', (chunk) => body.push(chunk.toString())).on('end', () => {
 			const result = this.usersService.create(JSON.parse(body.join()));
@@ -40,6 +42,7 @@ export default class {
 		req: IncomingMessageWithParams,
 		res: ServerResponse<IncomingMessageWithParams>
 	) => {
+		res.setHeader('Content-Type', 'application/json');
 		const userId = req.params.id;
 		const body: string[] = [];
 		req.on('data', (chunk) => body.push(chunk.toString())).on('end', () => {
@@ -60,6 +63,7 @@ export default class {
 		req: IncomingMessageWithParams,
 		res: ServerResponse<IncomingMessageWithParams>
 	) => {
+		res.setHeader('Content-Type', 'application/json');
 		const userId = req.params.id;
 		const result = this.usersService.deleteById(userId);
 
