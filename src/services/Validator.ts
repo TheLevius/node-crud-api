@@ -3,6 +3,7 @@ export default class {
 		'notNull',
 		'required',
 		'properType',
+		'isArrayOf',
 	];
 	constructor() {}
 	private notNull = (prop: Prop, obj: object): boolean =>
@@ -11,13 +12,24 @@ export default class {
 		Object.hasOwn(obj, prop.key);
 	private properType = (prop: Prop, obj: object): boolean => {
 		const currentTableType = typeof obj[prop.key];
+
 		if (currentTableType === 'object') {
 			return (
-				prop?.expectTypes?.includes(currentTableType) ||
+				prop.expectTypes?.includes(currentTableType) ||
 				Array.isArray(obj[prop.key])
 			);
 		}
 		return prop?.expectTypes?.includes(currentTableType) || false;
+	};
+	private isArrayOf = (prop: Prop, obj: object): boolean => {
+		const expectArrayOf = prop.expectArrayOf ?? [];
+		if (expectArrayOf?.length === 0) {
+			return false;
+		}
+
+		return !obj[prop.key].some((value: unknown) => {
+			return !expectArrayOf.includes(typeof value);
+		});
 	};
 
 	private validateProp = (obj: object, prop: Prop): Prop => {
@@ -31,6 +43,15 @@ export default class {
 						checker: check,
 						expected: 'required expectTypes',
 						received: 'missing expectTypes',
+					});
+				} else if (
+					check === 'isArrayOf' &&
+					!Array.isArray(prop?.expectArrayOf)
+				) {
+					acc.push({
+						checker: check,
+						expected: 'required expectArrayOf',
+						received: 'incorrect format expectArrayOf',
 					});
 				} else {
 					const res: boolean = this[check](prop, obj);
@@ -54,6 +75,7 @@ export default class {
 
 		return prop;
 	};
+
 	public validate = (obj: object, schemaProps: Prop[]): CheckResult => {
 		if (!Array.isArray(schemaProps) || schemaProps.length === 0) {
 			return { errors: ['Invalid Schema'], status: 'ERROR' };
@@ -73,7 +95,7 @@ export default class {
 	};
 }
 
-type BoolCheckers = 'notNull' | 'required' | 'properType';
+type BoolCheckers = 'notNull' | 'required' | 'properType' | 'isArrayOf';
 
 type CheckError = CheckPropError | CheckUnknownError;
 type CheckPropError = {
@@ -89,8 +111,9 @@ type CheckUnknownError = {
 type Prop = {
 	key: string;
 	checks: BoolCheckers[];
-	errors?: CheckError[];
 	expectTypes?: TypeTableValues[];
+	expectArrayOf?: string[];
+	errors?: CheckError[];
 };
 
 type TypeTableValues =
