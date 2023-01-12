@@ -4,14 +4,17 @@ export default class {
 	constructor(users: User[]) {
 		this.users = users ?? [];
 	}
-	getAll = () => this.users;
+	getAll = (): Result => ({
+		users: this.users,
+		status: Statuses.OK,
+	});
 	findOneById = (id: string): Result => {
 		const result: Result = {
 			status: Statuses.NOT_FOUND,
 		};
-		this.users.findIndex((u) => {
-			if (u.id === id) {
-				result.user = u;
+		this.users.findIndex((user) => {
+			if (user.id === id) {
+				result.user = user;
 				result.status = Statuses.OK;
 				return true;
 			}
@@ -23,9 +26,9 @@ export default class {
 		const result: Result = {
 			status: Statuses.NOT_FOUND,
 		};
-		this.users = this.users.filter((u) => {
-			if (u.id === id) {
-				result.deleted = JSON.parse(JSON.stringify(u));
+		this.users = this.users.filter((user) => {
+			if (user.id === id) {
+				result.deleted = JSON.parse(JSON.stringify(user));
 				result.status = Statuses.DELETED;
 				return false;
 			}
@@ -54,17 +57,14 @@ export default class {
 
 		return result;
 	};
-	create = (user: User): Result => {
-		const result: Result = {
-			status: Statuses.INIT,
-		};
-
-		const newUser = { ...user, id: v4() };
+	create = (user: Omit<User, 'id'>): Result => {
+		const newUser: User = { ...user, id: v4() };
 		this.users.push(newUser);
-		result.user = newUser;
-		result.status = Statuses.CREATED;
 
-		return result;
+		return {
+			user: newUser,
+			status: Statuses.CREATED,
+		};
 	};
 }
 
@@ -88,6 +88,7 @@ export const enum Statuses {
 
 export type Result = {
 	status: Statuses;
+	users?: User[];
 	user?: User;
 	before?: User;
 	updated?: User;

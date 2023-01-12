@@ -1,35 +1,30 @@
+import { validate as isUuid } from 'uuid';
 export default class {
 	private boolCheckers: BoolCheckers[] = [
 		'notNull',
 		'required',
 		'properType',
 		'isArrayOf',
+		'isProperId',
 	];
 	constructor() {}
-	private notNull = (prop: Prop, obj: object): boolean =>
-		obj[prop.key] !== null;
-	private required = (prop: Prop, obj: object): boolean =>
-		Object.hasOwn(obj, prop.key);
-	private properType = (prop: Prop, obj: object): boolean => {
-		const currentTableType = typeof obj[prop.key];
 
-		if (currentTableType === 'object') {
-			return (
-				prop.expectTypes?.includes(currentTableType) ||
-				Array.isArray(obj[prop.key])
-			);
-		}
-		return prop?.expectTypes?.includes(currentTableType) || false;
-	};
-	private isArrayOf = (prop: Prop, obj: object): boolean => {
-		const expectArrayOf = prop.expectArrayOf ?? [];
-		if (expectArrayOf?.length === 0) {
-			return false;
+	public validate = (obj: object, schemaProps: Prop[]): CheckResult => {
+		if (!Array.isArray(schemaProps) || schemaProps.length === 0) {
+			return { errors: ['Invalid Schema'], status: Statuses.ERROR };
 		}
 
-		return !obj[prop.key].some((value: unknown) => {
-			return !expectArrayOf.includes(typeof value);
-		});
+		const errors: Prop[] = schemaProps.reduce((acc: Prop[], prop) => {
+			const checkPropResult = this.validateProp(obj, prop);
+			if (checkPropResult?.errors && checkPropResult.errors.length > 0) {
+				acc.push(checkPropResult);
+			}
+			return acc;
+		}, []);
+
+		const status = errors.length === 0 ? Statuses.OK : Statuses.ERROR;
+
+		return { errors, status };
 	};
 
 	private validateProp = (obj: object, prop: Prop): Prop => {
@@ -76,26 +71,43 @@ export default class {
 		return prop;
 	};
 
-	public validate = (obj: object, schemaProps: Prop[]): CheckResult => {
-		if (!Array.isArray(schemaProps) || schemaProps.length === 0) {
-			return { errors: ['Invalid Schema'], status: 'ERROR' };
+	private notNull = (prop: Prop, obj: object): boolean =>
+		obj[prop.key] !== null;
+	private required = (prop: Prop, obj: object): boolean =>
+		Object.hasOwn(obj, prop.key);
+	private properType = (prop: Prop, obj: object): boolean => {
+		const currentTableType = typeof obj[prop.key];
+		if (!Object.hasOwn(obj, prop.key)) {
+			return true;
+		}
+		if (currentTableType === 'object') {
+			return (
+				prop.expectTypes?.includes(currentTableType) ||
+				Array.isArray(obj[prop.key])
+			);
+		}
+		return prop?.expectTypes?.includes(currentTableType) || false;
+	};
+	private isArrayOf = (prop: Prop, obj: object): boolean => {
+		const expectArrayOf = prop.expectArrayOf ?? [];
+		if (expectArrayOf?.length === 0) {
+			return false;
 		}
 
-		const errors: Prop[] = schemaProps.reduce((acc: Prop[], prop) => {
-			const checkPropResult = this.validateProp(obj, prop);
-			if (checkPropResult?.errors && checkPropResult.errors.length > 0) {
-				acc.push(checkPropResult);
-			}
-			return acc;
-		}, []);
-
-		const status = errors.length === 0 ? 'OK' : 'ERROR';
-
-		return { errors, status };
+		return !obj[prop.key].some((value: unknown) => {
+			return !expectArrayOf.includes(typeof value);
+		});
 	};
+	private isProperId = (prop: Prop, obj: object): boolean =>
+		isUuid(obj[prop.key]);
 }
 
-type BoolCheckers = 'notNull' | 'required' | 'properType' | 'isArrayOf';
+type BoolCheckers =
+	| 'notNull'
+	| 'required'
+	| 'properType'
+	| 'isArrayOf'
+	| 'isProperId';
 
 type CheckError = CheckPropError | CheckUnknownError;
 type CheckPropError = {
@@ -108,13 +120,17 @@ type CheckUnknownError = {
 	expected: string | BoolCheckers[];
 	received: string;
 };
-type Prop = {
+export type Prop = {
 	key: string;
 	checks: BoolCheckers[];
 	expectTypes?: TypeTableValues[];
 	expectArrayOf?: string[];
 	errors?: CheckError[];
 };
+const enum Statuses {
+	OK = 'OK',
+	ERROR = 'ERROR',
+}
 
 type TypeTableValues =
 	| 'undefined'
@@ -129,5 +145,5 @@ type TypeTableValues =
 
 type CheckResult = {
 	errors: (Prop | string)[];
-	status: 'OK' | 'ERROR';
+	status: Statuses;
 };

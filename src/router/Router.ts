@@ -5,7 +5,7 @@ export default class {
 	constructor() {
 		this.routes = [];
 	}
-	_reg = (method: Methods, inputRoute: string, handler: Function) => {
+	private _reg = (method: Methods, inputRoute: string, handler: Function) => {
 		let route = inputRoute;
 		let routeType: RouteType = 'exact';
 		let relativeRouteCortegeParams: string[] = [];
@@ -42,16 +42,10 @@ export default class {
 		}
 		return;
 	};
-	get = (route: string, handler) => this._reg('GET', route, handler);
-	post = (route: string, handler) => this._reg('POST', route, handler);
-	put = (route: string, handler) => this._reg('PUT', route, handler);
-	delete = (route: string, handler) => this._reg('DELETE', route, handler);
 
-	requestHandler = (
-		req: IncomingMessage & { params?: { [key: string]: string } },
-		res: ServerResponse<
-			IncomingMessage & { params?: { [key: string]: string } }
-		>
+	public requestHandler = (
+		req: IncomingMessage & Params,
+		res: ServerResponse<IncomingMessage & Params>
 	) => {
 		if (req.url !== undefined && req.method !== undefined) {
 			const currentURL = new URL(req.url, `http://${req.headers.host}`);
@@ -87,8 +81,9 @@ export default class {
 
 				if (
 					verbHandlers !== undefined &&
-					verbHandlers.hasOwnProperty(req.method)
+					Object.hasOwn(verbHandlers, req.method)
 				) {
+					res.setHeader('Content-Type', 'application/json');
 					verbHandlers[req.method](req, res);
 					return;
 				} else {
@@ -104,7 +99,7 @@ export default class {
 					JSON.stringify({
 						message: 'Requests to non-existing endpoints',
 						status: `ERROR ${res.statusCode}`,
-					})	
+					})
 				);
 				return;
 			}
@@ -116,16 +111,27 @@ export default class {
 		}
 	};
 
-	_defineRouteType = (route: string, pathname: string): RouteType => {
+	private _defineRouteType = (route: string, pathname: string): RouteType => {
 		return route === pathname || route + '/' === pathname
 			? 'exact'
 			: 'relative';
 	};
 
-	_getParams = (restRoute: string): string[] => restRoute.slice(1).split('/');
+	private _getParams = (restRoute: string): string[] =>
+		restRoute.slice(1).split('/');
+
+	public get = (route: string, handler) => this._reg('GET', route, handler);
+	public post = (route: string, handler) => this._reg('POST', route, handler);
+	public put = (route: string, handler) => this._reg('PUT', route, handler);
+	public delete = (route: string, handler) =>
+		this._reg('DELETE', route, handler);
 }
 
 type Methods = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+type Params = {
+	params?: { [key: string]: string };
+};
 
 type RouteType = 'exact' | 'relative';
 type MethodHandlers = {
