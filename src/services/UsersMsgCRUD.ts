@@ -1,4 +1,4 @@
-import { IPCMessage } from '../controllers/MsgController.js';
+import { IPCMessage } from '../controllers/ReceiveMsgController.js';
 import { Result, Statuses } from './UsersCRUD.js';
 export default class {
 	constructor() {}
@@ -7,8 +7,8 @@ export default class {
 		return new Promise((resolve) => {
 			process.on('message', (msg: Result) => {
 				if (msg.action === 'getAll') {
-					delete msg.action;
-					resolve(msg);
+					const { action, ...readyMsg } = msg;
+					resolve(readyMsg);
 				}
 			});
 		});
@@ -22,7 +22,8 @@ export default class {
 		return new Promise((resolve) => {
 			process.on('message', (msg: Result) => {
 				if (msg.action === 'getOneById') {
-					resolve(msg);
+					const { action, ...readyMsg } = msg;
+					resolve(readyMsg);
 				}
 			});
 		});
@@ -36,7 +37,8 @@ export default class {
 		return new Promise((resolve) => {
 			process.on('message', (msg: Result) => {
 				if (msg.action === 'deleteById') {
-					resolve(msg);
+					const { action, ...readyMsg } = msg;
+					resolve(readyMsg);
 				}
 			});
 		});
@@ -51,7 +53,8 @@ export default class {
 		return new Promise((resolve) => {
 			process.on('message', (msg: Result) => {
 				if (msg.action === 'updateById') {
-					resolve(msg);
+					const { action, ...readyMsg } = msg;
+					resolve(readyMsg);
 				}
 			});
 		});
@@ -65,7 +68,8 @@ export default class {
 		return new Promise((resolve) => {
 			process.on('message', (msg: Result) => {
 				if (msg.action === 'create') {
-					resolve(msg);
+					const { action, ...readyMsg } = msg;
+					resolve(readyMsg);
 				}
 			});
 		});

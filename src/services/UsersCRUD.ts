@@ -1,5 +1,5 @@
 import { v4 } from 'uuid';
-import { IPCMsgActions } from '../controllers/MsgController.js';
+import { IPCMsgActions } from '../controllers/ReceiveMsgController.js';
 export default class {
 	users: User[];
 	constructor(users: User[]) {

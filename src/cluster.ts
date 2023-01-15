@@ -4,19 +4,19 @@ import { hostname } from 'node:os';
 import { cpus } from 'node:os';
 import process from 'node:process';
 import dotenv from 'dotenv';
-import UsersCRUD, { Result } from './services/UsersCRUD.js';
-import MsgController from './controllers/MsgController.js';
+import UsersCRUD from './services/UsersCRUD.js';
+import ReceiveMsgController from './controllers/ReceiveMsgController.js';
 import Validator from './services/Validator.js';
 import Router from './router/Router.js';
 import UsersMsgController from './controllers/UsersMsgController.js';
 import UsersMsgCRUD from './services/UsersMsgCRUD.js';
-
 dotenv.config();
-const basePort = Number(process.env.PORT);
-const basePid = process.pid;
 
 const usersCRUD = new UsersCRUD([]);
-const msgController = new MsgController({ usersCRUD });
+const msgController = new ReceiveMsgController({ usersCRUD });
+
+const basePort = Number(process.env.PORT);
+const basePid = process.pid;
 
 const initRoundRobinGen = (max: number, min = 0): Function => {
 	let current = min;
@@ -41,7 +41,9 @@ if (cluster.isPrimary) {
 		});
 	}
 
-	const getRoundRobinValue = initRoundRobinGen(workerKeys.length - 1, 0);
+	const getRoundRobinValue: Function = initRoundRobinGen(
+		workerKeys.length - 1
+	);
 
 	const balancer = (
 		req: IncomingMessage,
@@ -50,7 +52,7 @@ if (cluster.isPrimary) {
 		const roundRobinValue = getRoundRobinValue();
 		const options = {
 			hostname: hostname(),
-			port: basePort + roundRobinValue,
+			port: basePort + parseInt(workerKeys[roundRobinValue]),
 			path: req.url,
 			method: req.method,
 			headers: req.headers,
@@ -85,7 +87,7 @@ if (cluster.isPrimary) {
 		console.log(`Master listening on port ${basePort} and pid ${basePid}`);
 	});
 } else {
-	const workerId = Number(cluster.worker?.id) ?? 0;
+	const workerId = Number(cluster.worker?.id);
 	const workerPort = basePort + workerId;
 
 	const usersMsgController = new UsersMsgController({
@@ -100,21 +102,6 @@ if (cluster.isPrimary) {
 	apiRouter.post('/api/users', usersMsgController.createUser);
 	apiRouter.put('/api/users/:id', usersMsgController.updateById);
 	apiRouter.delete('/api/users/:id', usersMsgController.deleteById);
-
-	const dispatcher = async (req, res) => {
-		const msgReceiver: Promise<Result> = new Promise((resolve) => {
-			process.on('message', (msg: Result) => {
-				resolve(msg);
-			});
-		});
-		process?.send && process.send({ action: 'getAll' });
-		const result: Result & { workerId?: number } = await msgReceiver;
-		result.workerId = workerId;
-		res.setHeader('Content-Type', 'application/json');
-		res.setHeader('Process-id', '' + process.pid);
-		res.writeHead(200);
-		res.end(JSON.stringify(result));
-	};
 
 	const workerServer = http.createServer(apiRouter.requestHandler);
 
