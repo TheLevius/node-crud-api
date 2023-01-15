@@ -5,10 +5,11 @@
 	"main": "./dist/index.js",
 	"type": "module",
 	"scripts": {
-		"start": "node ./dist/index.js",
+		"start:prod": "tsc && node ./dist/index.js",
 		"build": "tsc",
-		"dev": "nodemon -e ts -w ./src -x npm run watch:serve",
-		"watch:serve": "ts-node ./src/index.ts",
+		"start:dev": "nodemon -e ts -w ./src -x ts-node ./src/index.ts",
+		"start:multi": "nodemon -e ts -w ./src -x ts-node ./src/cluster.ts",
+		"start:inspect": "nodemon --inspect ./dist/index.js",
 		"test": "jest"
 	},
 	"keywords": [],

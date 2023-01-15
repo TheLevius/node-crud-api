@@ -1,8 +1,10 @@
 import { IncomingMessage, ServerResponse } from 'node:http';
-import UsersCRUD, {
+import {
+	Result,
 	Statuses as UsersCRUDStatuses,
 	User,
 } from '../services/UsersCRUD.js';
+import UsersMsgCRUD from '../services/UsersMsgCRUD.js';
 import Validator, { Prop } from '../services/Validator.js';
 
 const statusCodeDict: StatusCodeDict = {
@@ -16,27 +18,36 @@ const statusCodeDict: StatusCodeDict = {
 };
 
 export default class {
-	usersCRUD: UsersCRUD;
+	usersMsgCRUD: UsersMsgCRUD;
 	validator: Validator;
 	statusCodeDict: StatusCodeDict;
+	workerId: number;
 	constructor({
-		usersCRUD,
+		usersMsgCRUD,
 		validator,
+		workerId,
 	}: {
-		usersCRUD: UsersCRUD;
+		usersMsgCRUD: UsersMsgCRUD;
 		validator: Validator;
+		workerId: number;
 	}) {
-		this.usersCRUD = usersCRUD;
+		this.usersMsgCRUD = usersMsgCRUD;
 		this.validator = validator;
 		this.statusCodeDict = statusCodeDict;
+		this.workerId = workerId;
 	}
-	getAll = (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
-		const result = this.usersCRUD.getAll();
+	getAll = async (
+		req: IncomingMessage,
+		res: ServerResponse<IncomingMessage>
+	) => {
+		const result: Result & { workerId?: number } =
+			await this.usersMsgCRUD.getAll();
+		result.workerId = this.workerId;
 		res.statusCode = this.statusCodeDict[result.status];
 		res.end(JSON.stringify(result));
 	};
 
-	getOneById = (
+	getOneById = async (
 		req: IncomingMessage & Params,
 		res: ServerResponse<IncomingMessage & Params>
 	) => {
@@ -46,7 +57,7 @@ export default class {
 			idCheckSchema
 		);
 		if (validateResult.status === 'OK') {
-			const result = this.usersCRUD.findOneById(userId);
+			const result = await this.usersMsgCRUD.findOneById(userId);
 			res.statusCode = this.statusCodeDict[result.status];
 			res.end(JSON.stringify(result));
 		} else {
@@ -54,53 +65,62 @@ export default class {
 			res.end(JSON.stringify(validateResult));
 		}
 	};
-	createUser = (
+	createUser = async (
 		req: IncomingMessage,
 		res: ServerResponse<IncomingMessage>
 	) => {
 		const body: string[] = [];
-		req.on('data', (chunk) => body.push(chunk.toString())).on('end', () => {
-			const payload: Omit<User, 'id'> = JSON.parse(body.join());
-			const validateResult = this.validator.validate(
-				payload,
-				createUserSchema
-			);
-			if (validateResult.status === 'OK') {
-				const result = this.usersCRUD.create(payload);
-				res.statusCode = this.statusCodeDict[result.status];
-				res.end(JSON.stringify(result));
-			} else {
-				res.statusCode = this.statusCodeDict[validateResult.status];
-				res.end(JSON.stringify(validateResult));
+		req.on('data', (chunk) => body.push(chunk.toString())).on(
+			'end',
+			async () => {
+				const payload: Omit<User, 'id'> = JSON.parse(body.join());
+				const validateResult = this.validator.validate(
+					payload,
+					createUserSchema
+				);
+				if (validateResult.status === 'OK') {
+					const result = await this.usersMsgCRUD.create(payload);
+					res.statusCode = this.statusCodeDict[result.status];
+					res.end(JSON.stringify(result));
+				} else {
+					res.statusCode = this.statusCodeDict[validateResult.status];
+					res.end(JSON.stringify(validateResult));
+				}
 			}
-		});
+		);
 	};
-	updateById = (
+	updateById = async (
 		req: IncomingMessage & Params,
 		res: ServerResponse<IncomingMessage & Params>
 	) => {
 		const userId = req.params.id;
 		const body: string[] = [];
-		req.on('data', (chunk) => body.push(chunk.toString())).on('end', () => {
-			const payload = JSON.parse(body.join());
-			const validateResult = this.validator.validate(
-				{
-					...payload,
-					id: userId,
-				},
-				updateUserSchema
-			);
-			if (validateResult.status === 'OK') {
-				const result = this.usersCRUD.updateById(userId, payload);
-				res.statusCode = this.statusCodeDict[result.status];
-				res.end(JSON.stringify(result));
-			} else {
-				res.statusCode = this.statusCodeDict[validateResult.status];
-				res.end(JSON.stringify(validateResult));
+		req.on('data', (chunk) => body.push(chunk.toString())).on(
+			'end',
+			async () => {
+				const payload = JSON.parse(body.join());
+				const validateResult = this.validator.validate(
+					{
+						...payload,
+						id: userId,
+					},
+					updateUserSchema
+				);
+				if (validateResult.status === 'OK') {
+					const result = await this.usersMsgCRUD.updateById(
+						userId,
+						payload
+					);
+					res.statusCode = this.statusCodeDict[result.status];
+					res.end(JSON.stringify(result));
+				} else {
+					res.statusCode = this.statusCodeDict[validateResult.status];
+					res.end(JSON.stringify(validateResult));
+				}
 			}
-		});
+		);
 	};
-	deleteById = (
+	deleteById = async (
 		req: IncomingMessage & Params,
 		res: ServerResponse<IncomingMessage & Params>
 	) => {
@@ -110,7 +130,7 @@ export default class {
 			idCheckSchema
 		);
 		if (validateResult.status === 'OK') {
-			const result = this.usersCRUD.deleteById(userId);
+			const result = await this.usersMsgCRUD.deleteById(userId);
 			res.statusCode = this.statusCodeDict[result.status];
 			res.end(JSON.stringify(result));
 		} else {

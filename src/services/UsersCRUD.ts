@@ -1,4 +1,5 @@
 import { v4 } from 'uuid';
+import { IPCMsgActions } from '../controllers/MsgController.js';
 export default class {
 	users: User[];
 	constructor(users: User[]) {
@@ -93,4 +94,5 @@ export type Result = {
 	before?: User;
 	updated?: User;
 	deleted?: User;
+	action?: IPCMsgActions;
 };
