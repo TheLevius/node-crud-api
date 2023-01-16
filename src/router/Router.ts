@@ -26,10 +26,17 @@ export default class {
 			};
 
 			this.routes[routeIndex][routeType] = verbHandlers;
-			this.routes[routeIndex].cortegeParams = {
-				...this.routes[routeIndex].cortegeParams,
-				...relativeRouteCortegeParams,
-			};
+			const { cortegeParams } = this.routes[routeIndex];
+			if (Array.isArray(cortegeParams)) {
+				this.routes[routeIndex].cortegeParams = [
+					...new Set(
+						cortegeParams.concat(relativeRouteCortegeParams)
+					),
+				];
+			} else {
+				this.routes[routeIndex].cortegeParams =
+					relativeRouteCortegeParams;
+			}
 		} else {
 			const newRouteObj: Route = {
 				route,
@@ -70,6 +77,15 @@ export default class {
 
 					if (routeCortegeParams !== undefined) {
 						const requestParams = this._getParams(restRoute);
+
+						if (routeCortegeParams.length < requestParams.length) {
+							res.statusCode = 404;
+							res.setHeader('Content-Type', 'text/plain');
+							res.end(
+								'Request to non-existing endpoint or incorrect method'
+							);
+							return;
+						}
 						req.params = requestParams.reduce((acc, el, i) => {
 							acc[routeCortegeParams[i]] = el;
 							return acc;
@@ -90,7 +106,7 @@ export default class {
 					res.statusCode = 404;
 					res.setHeader('Content-Type', 'text/plain');
 					res.end(
-						'Request to non-existing endpoint or with incorrect method'
+						'Request to non-existing endpoint or incorrect method'
 					);
 					return;
 				}
@@ -120,7 +136,10 @@ export default class {
 	};
 
 	private _getParams = (restRoute: string): string[] =>
-		restRoute.slice(1).split('/');
+		restRoute
+			.slice(1)
+			.split('/')
+			.filter((p) => p !== '');
 
 	public get = (route: string, handler) => this._reg('GET', route, handler);
 	public post = (route: string, handler) => this._reg('POST', route, handler);
