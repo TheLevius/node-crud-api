@@ -49,12 +49,13 @@ export default class {
 			}
 			return false;
 		});
-		if (index === -1) {
+		if (index > -1) {
+			this.users[index] = { ...this.users[index], ...updates, id };
+			result.updated = this.users[index];
+			result.status = Statuses.OK;
+		} else {
 			result.status = Statuses.NOT_FOUND;
 		}
-		this.users[index] = { ...this.users[index], ...updates };
-		result.updated = this.users[index];
-		result.status = Statuses.OK;
 
 		return result;
 	};

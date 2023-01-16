@@ -87,9 +87,11 @@ export default class {
 					verbHandlers[req.method](req, res);
 					return;
 				} else {
-					res.statusCode = 400;
+					res.statusCode = 404;
 					res.setHeader('Content-Type', 'text/plain');
-					res.end('Bad Request');
+					res.end(
+						'Request to non-existing endpoint or with incorrect method'
+					);
 					return;
 				}
 			} else {
@@ -97,7 +99,7 @@ export default class {
 				res.setHeader('Content-Type', 'application/json');
 				res.end(
 					JSON.stringify({
-						message: 'Requests to non-existing endpoints',
+						message: 'Requests to non-existing endpoint',
 						status: `ERROR ${res.statusCode}`,
 					})
 				);
@@ -106,7 +108,7 @@ export default class {
 		} else {
 			res.statusCode = 400;
 			res.setHeader('Content-Type', 'text/plain');
-			res.end('Bad Request');
+			res.end('Bad Request, incorrect Url or Method');
 			return;
 		}
 	};
