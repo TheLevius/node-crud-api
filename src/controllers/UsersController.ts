@@ -127,12 +127,12 @@ export const idCheckSchema: Prop[] = [
 export const createUserSchema: Prop[] = [
 	{
 		key: 'username',
-		checks: ['properType'],
+		checks: ['properType', 'required'],
 		expectTypes: ['string'],
 	},
 	{
 		key: 'age',
-		checks: ['properType'],
+		checks: ['properType', 'required'],
 		expectTypes: ['number'],
 	},
 	{
