@@ -7,7 +7,6 @@ import dotenv from 'dotenv';
 import UsersCRUD from './services/UsersCRUD.js';
 import ReceiveMsgController, {
 	IPCMessage,
-	IPCMsgActions,
 } from './controllers/ReceiveMsgController.js';
 import Validator from './services/Validator.js';
 import Router from './router/Router.js';
@@ -75,10 +74,12 @@ if (cluster.isPrimary) {
 					body.push(chunk);
 				})
 				.on('end', () => {
-					res.setHeader(
-						'Content-Type',
-						response.headers?.['Content-Type'] ?? 'text/plain'
-					);
+					for (const [header, value] of Object.entries(
+						response.headers
+					)) {
+						res.setHeader(header, value ?? '');
+					}
+					res.statusCode = response.statusCode ?? res.statusCode;
 					res.write(body.join().toString());
 					res.end();
 				});

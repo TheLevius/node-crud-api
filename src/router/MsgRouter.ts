@@ -4,6 +4,6 @@ export default class {
 		this.service = service || {};
 	}
 	public msgHandler = (msg) => {
-		this.service[msg.action](msg);
+		this.service[msg.action](msg.payload);
 	};
 }

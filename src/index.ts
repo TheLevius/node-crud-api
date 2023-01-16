@@ -20,9 +20,7 @@ apiRouter.post('/api/users', usersController.create);
 apiRouter.put('/api/users/:id', usersController.updateById);
 apiRouter.delete('/api/users/:id', usersController.deleteById);
 
-export const server = createServer(apiRouter.requestHandler).listen(
-	port,
-	() => {
-		console.log(`Server started on port: ${port}`);
-	}
-);
+export const server = createServer(apiRouter.requestHandler);
+server.listen(port, () => {
+	console.log(`Server started on port: ${port}`);
+});
