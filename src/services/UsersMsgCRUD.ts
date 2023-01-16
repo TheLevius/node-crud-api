@@ -1,80 +1,80 @@
-import { IPCMessage } from '../controllers/ReceiveMsgController.js';
-import { Result, Statuses } from './UsersCRUD.js';
+import {
+	IPCMessage,
+	IPCMsgActions,
+} from '../controllers/ReceiveMsgController.js';
+import { Result } from './UsersCRUD.js';
 export default class {
 	constructor() {}
-	getAll = async (): Promise<Result> => {
-		process.send && process.send({ action: 'getAll' });
-		return new Promise((resolve) => {
-			process.on('message', (msg: Result) => {
-				if (msg.action === 'getAll') {
-					const { action, ...readyMsg } = msg;
-					resolve(readyMsg);
-				}
-			});
-		});
-	};
-	findOneById = async (id: string): Promise<Result> => {
-		const findUser: Pick<IPCMessage, 'userId' & 'action'> = {
-			userId: id,
-			action: 'getOneById',
+	public getAll = async (): Promise<Result> => {
+		const msgRequest: IPCMsgRequest<null> = {
+			action: 'findAll',
+			payload: null,
 		};
-		process.send && process.send(findUser);
-		return new Promise((resolve) => {
-			process.on('message', (msg: Result) => {
-				if (msg.action === 'getOneById') {
-					const { action, ...readyMsg } = msg;
-					resolve(readyMsg);
-				}
-			});
-		});
+		return this.receiver(msgRequest);
 	};
-	deleteById = async (id: string): Promise<Result> => {
-		const deleteUser: Pick<IPCMessage, 'userId' & 'action'> = {
-			userId: id,
+	public findOneById = async (id: string): Promise<Result> => {
+		const msgRequest: IPCMsgRequest<Pick<IPCMessage, 'userId'>> = {
+			action: 'findOneById',
+			payload: {
+				userId: id,
+			},
+		};
+		return this.receiver(msgRequest);
+	};
+	public deleteById = async (id: string): Promise<Result> => {
+		const msgRequest: IPCMsgRequest<Pick<IPCMessage, 'userId'>> = {
 			action: 'deleteById',
+			payload: {
+				userId: id,
+			},
 		};
-		process.send && process.send(deleteUser);
-		return new Promise((resolve) => {
-			process.on('message', (msg: Result) => {
-				if (msg.action === 'deleteById') {
-					const { action, ...readyMsg } = msg;
-					resolve(readyMsg);
-				}
-			});
-		});
+		return this.receiver(msgRequest);
 	};
-	updateById = async (id: string, updates: UserUpdates): Promise<Result> => {
-		const userUpdate: Omit<IPCMessage, 'userCreate'> = {
-			userUpdate: updates,
-			userId: id,
+	public updateById = async (
+		id: string,
+		updates: UserUpdates
+	): Promise<Result> => {
+		const msgRequest: IPCMsgRequest<Omit<IPCMessage, 'userCreate'>> = {
 			action: 'updateById',
+			payload: {
+				userUpdate: updates,
+				userId: id,
+			},
 		};
-		process.send && process.send(userUpdate);
-		return new Promise((resolve) => {
-			process.on('message', (msg: Result) => {
-				if (msg.action === 'updateById') {
-					const { action, ...readyMsg } = msg;
-					resolve(readyMsg);
-				}
-			});
-		});
+		return this.receiver(msgRequest);
 	};
-	create = async (user: Omit<User, 'id'>): Promise<Result> => {
-		const newUser: Pick<IPCMessage, 'action' & 'userCreate'> = {
-			userCreate: user,
+	public create = async (user: Omit<User, 'id'>): Promise<Result> => {
+		const msgRequest: IPCMsgRequest<Pick<IPCMessage, 'userCreate'>> = {
 			action: 'create',
+			payload: {
+				userCreate: user,
+			},
 		};
-		process.send && process.send(newUser);
-		return new Promise((resolve) => {
-			process.on('message', (msg: Result) => {
-				if (msg.action === 'create') {
-					const { action, ...readyMsg } = msg;
-					resolve(readyMsg);
+		return this.receiver(msgRequest);
+	};
+	private receiver = async (
+		msgRequest: IPCMsgRequest<Partial<IPCMessage> | null>
+	): Promise<Result> => {
+		const result: Promise<Result> = new Promise((resolve) => {
+			process.on('message', (msg: IPCMsgResponse) => {
+				if (msg.action === msgRequest.action) {
+					resolve(msg.result);
 				}
 			});
 		});
+		process.send && process.send(msgRequest);
+		return result;
 	};
 }
+
+export type IPCMsgResponse = {
+	action: IPCMsgActions;
+	result: Result;
+};
+export type IPCMsgRequest<T> = {
+	action: IPCMsgActions;
+	payload: T;
+};
 
 export type User = {
 	id: string;

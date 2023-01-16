@@ -94,5 +94,4 @@ export type Result = {
 	before?: User;
 	updated?: User;
 	deleted?: User;
-	action?: IPCMsgActions;
 };

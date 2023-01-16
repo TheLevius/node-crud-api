@@ -1,48 +1,33 @@
 import UsersCRUD, { Result, User, UserUpdates } from '../services/UsersCRUD.js';
+import { IPCMsgRequest } from '../services/UsersMsgCRUD.js';
 
 export default class {
 	private usersCRUD: UsersCRUD;
 	constructor({ usersCRUD }) {
 		this.usersCRUD = usersCRUD;
 	}
-	public msgHandler = (msg: IPCMessage): Result => {
-		return this[msg.action](msg);
-	};
-	private getAll = (msg: IPCMessage): Result => ({
-		action: msg.action,
-		...this.usersCRUD.getAll(),
-	});
-	private getOneById = (msg: IPCMessage): Result => ({
-		action: msg.action,
-		...this.usersCRUD.findOneById(msg.userId),
-	});
-	private create = (msg: Omit<IPCMessage, 'userUpdate'>): Result => ({
-		action: msg.action,
-		...this.usersCRUD.create(msg?.userCreate),
-	});
+	public msgHandler = (msg: IPCMsgRequest<IPCMessage>): Result =>
+		this[msg.action](msg.payload);
 
-	private updateById = (msg: Omit<IPCMessage, 'userCreate'>): Result => ({
-		action: msg.action,
-		...this.usersCRUD.updateById(msg.userId, msg.userUpdate),
-	});
-	private deleteById = (
-		msg: Omit<IPCMessage, 'userUpdate' | 'userCreate'>
-	): Result => ({
-		action: msg.action,
-		...this.usersCRUD.deleteById(msg.userId),
-	});
+	private findAll = (): Result => this.usersCRUD.getAll();
+	private findOneById = (payload: Pick<IPCMessage, 'userId'>): Result =>
+		this.usersCRUD.findOneById(payload.userId);
+	private create = (payload: Pick<IPCMessage, 'userCreate'>): Result =>
+		this.usersCRUD.create(payload.userCreate);
+	private updateById = (payload: Omit<IPCMessage, 'userCreate'>): Result =>
+		this.usersCRUD.updateById(payload.userId, payload.userUpdate);
+	private deleteById = (payload: Pick<IPCMessage, 'userId'>): Result =>
+		this.usersCRUD.deleteById(payload.userId);
 }
-
 export type IPCMessage = {
-	action: IPCMsgActions;
 	userId: string;
 	userCreate: Omit<User, 'id'>;
 	userUpdate: UserUpdates;
 };
 
 export type IPCMsgActions =
-	| 'getAll'
-	| 'getOneById'
+	| 'findAll'
+	| 'findOneById'
 	| 'create'
 	| 'updateById'
 	| 'deleteById';

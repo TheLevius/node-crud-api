@@ -5,20 +5,25 @@ import { cpus } from 'node:os';
 import process from 'node:process';
 import dotenv from 'dotenv';
 import UsersCRUD from './services/UsersCRUD.js';
-import ReceiveMsgController from './controllers/ReceiveMsgController.js';
+import ReceiveMsgController, {
+	IPCMessage,
+	IPCMsgActions,
+} from './controllers/ReceiveMsgController.js';
 import Validator from './services/Validator.js';
 import Router from './router/Router.js';
 import UsersMsgController from './controllers/UsersMsgController.js';
-import UsersMsgCRUD from './services/UsersMsgCRUD.js';
+import UsersMsgCRUD, { IPCMsgRequest } from './services/UsersMsgCRUD.js';
 dotenv.config();
 
 const usersCRUD = new UsersCRUD([]);
-const msgController = new ReceiveMsgController({ usersCRUD });
+const receiveMsgController = new ReceiveMsgController({ usersCRUD });
 
 const basePort = Number(process.env.PORT);
-const basePid = process.pid;
 
-const initRoundRobinGen = (max: number, min = 0): Function => {
+const initRoundRobinGen: (max: number, min?: number) => () => number = (
+	max,
+	min = 0
+) => {
 	let current = min;
 	return (): number => {
 		if (current > max) {
@@ -29,6 +34,8 @@ const initRoundRobinGen = (max: number, min = 0): Function => {
 };
 
 if (cluster.isPrimary) {
+	const basePid = process.pid;
+
 	const numCPUs = cpus().length - 1;
 	for (let i = 0; i < numCPUs; i++) {
 		cluster.fork();
@@ -36,14 +43,18 @@ if (cluster.isPrimary) {
 	const workerKeys = (cluster.workers && Object.keys(cluster.workers)) || [];
 
 	for (const workerId of workerKeys) {
-		cluster.workers?.[workerId]?.on('message', (msg) => {
-			cluster.workers?.[workerId]?.send(msgController.msgHandler(msg));
-		});
+		cluster.workers?.[workerId]?.on(
+			'message',
+			(msg: IPCMsgRequest<IPCMessage>) => {
+				cluster.workers?.[workerId]?.send({
+					action: msg.action,
+					result: receiveMsgController.msgHandler(msg),
+				});
+			}
+		);
 	}
 
-	const getRoundRobinValue: Function = initRoundRobinGen(
-		workerKeys.length - 1
-	);
+	const getRoundRobinValue = initRoundRobinGen(workerKeys.length - 1);
 
 	const balancer = (
 		req: IncomingMessage,
