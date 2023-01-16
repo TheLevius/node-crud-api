@@ -9,7 +9,7 @@ export default class {
 	public msgHandler = (msg: IPCMsgRequest<IPCMessage>): Result =>
 		this[msg.action](msg.payload);
 
-	private findAll = (): Result => this.usersCRUD.getAll();
+	private findAll = (): Result => this.usersCRUD.findAll();
 	private findOneById = (payload: Pick<IPCMessage, 'userId'>): Result =>
 		this.usersCRUD.findOneById(payload.userId);
 	private create = (payload: Pick<IPCMessage, 'userCreate'>): Result =>

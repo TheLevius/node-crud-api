@@ -1,15 +1,15 @@
 import { v4 } from 'uuid';
 import { IPCMsgActions } from '../controllers/ReceiveMsgController.js';
 export default class {
-	users: User[];
+	private users: User[];
 	constructor(users: User[]) {
 		this.users = users ?? [];
 	}
-	getAll = (): Result => ({
+	public findAll = (): Result => ({
 		users: this.users,
 		status: Statuses.OK,
 	});
-	findOneById = (id: string): Result => {
+	public findOneById = (id: string): Result => {
 		const result: Result = {
 			status: Statuses.NOT_FOUND,
 		};
@@ -23,7 +23,7 @@ export default class {
 		});
 		return result;
 	};
-	deleteById = (id: string): Result => {
+	public deleteById = (id: string): Result => {
 		const result: Result = {
 			status: Statuses.NOT_FOUND,
 		};
@@ -38,7 +38,7 @@ export default class {
 
 		return result;
 	};
-	updateById = (id: string, updates: UserUpdates): Result => {
+	public updateById = (id: string, updates: UserUpdates): Result => {
 		const result: Result = {
 			status: Statuses.INIT,
 		};
@@ -58,7 +58,7 @@ export default class {
 
 		return result;
 	};
-	create = (user: Omit<User, 'id'>): Result => {
+	public create = (user: Omit<User, 'id'>): Result => {
 		const newUser: User = { ...user, id: v4() };
 		this.users.push(newUser);
 
@@ -94,4 +94,5 @@ export type Result = {
 	before?: User;
 	updated?: User;
 	deleted?: User;
+	workerId?: number;
 };

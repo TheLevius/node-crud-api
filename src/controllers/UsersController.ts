@@ -30,13 +30,13 @@ export default class {
 		this.validator = validator;
 		this.statusCodeDict = statusCodeDict;
 	}
-	getAll = (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
-		const result = this.usersCRUD.getAll();
+	findAll = (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
+		const result = this.usersCRUD.findAll();
 		res.statusCode = this.statusCodeDict[result.status];
 		res.end(JSON.stringify(result));
 	};
 
-	getOneById = (
+	findOneById = (
 		req: IncomingMessage & Params,
 		res: ServerResponse<IncomingMessage & Params>
 	) => {
@@ -54,10 +54,7 @@ export default class {
 			res.end(JSON.stringify(validateResult));
 		}
 	};
-	createUser = (
-		req: IncomingMessage,
-		res: ServerResponse<IncomingMessage>
-	) => {
+	create = (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
 		const body: string[] = [];
 		req.on('data', (chunk) => body.push(chunk.toString())).on('end', () => {
 			const payload: Omit<User, 'id'> = JSON.parse(body.join());

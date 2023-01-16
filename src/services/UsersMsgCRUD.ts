@@ -5,7 +5,7 @@ import {
 import { Result } from './UsersCRUD.js';
 export default class {
 	constructor() {}
-	public getAll = async (): Promise<Result> => {
+	public findAll = async (): Promise<Result> => {
 		const msgRequest: IPCMsgRequest<null> = {
 			action: 'findAll',
 			payload: null,

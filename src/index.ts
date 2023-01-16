@@ -14,9 +14,9 @@ const usersController = new UsersController({
 });
 const apiRouter = new Router();
 
-apiRouter.get('/api/users', usersController.getAll);
-apiRouter.get('/api/users/:id', usersController.getOneById);
-apiRouter.post('/api/users', usersController.createUser);
+apiRouter.get('/api/users', usersController.findAll);
+apiRouter.get('/api/users/:id', usersController.findOneById);
+apiRouter.post('/api/users', usersController.create);
 apiRouter.put('/api/users/:id', usersController.updateById);
 apiRouter.delete('/api/users/:id', usersController.deleteById);
 

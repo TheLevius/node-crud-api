@@ -36,18 +36,17 @@ export default class {
 		this.statusCodeDict = statusCodeDict;
 		this.workerId = workerId;
 	}
-	getAll = async (
+	public findAll = async (
 		req: IncomingMessage,
 		res: ServerResponse<IncomingMessage>
 	) => {
-		const result: Result & { workerId?: number } =
-			await this.usersMsgCRUD.getAll();
+		const result: Result = await this.usersMsgCRUD.findAll();
 		result.workerId = this.workerId;
 		res.statusCode = this.statusCodeDict[result.status];
 		res.end(JSON.stringify(result));
 	};
 
-	getOneById = async (
+	public findOneById = async (
 		req: IncomingMessage & Params,
 		res: ServerResponse<IncomingMessage & Params>
 	) => {
@@ -58,6 +57,7 @@ export default class {
 		);
 		if (validateResult.status === 'OK') {
 			const result = await this.usersMsgCRUD.findOneById(userId);
+			result.workerId = this.workerId;
 			res.statusCode = this.statusCodeDict[result.status];
 			res.end(JSON.stringify(result));
 		} else {
@@ -65,7 +65,7 @@ export default class {
 			res.end(JSON.stringify(validateResult));
 		}
 	};
-	createUser = async (
+	public create = async (
 		req: IncomingMessage,
 		res: ServerResponse<IncomingMessage>
 	) => {
@@ -80,6 +80,7 @@ export default class {
 				);
 				if (validateResult.status === 'OK') {
 					const result = await this.usersMsgCRUD.create(payload);
+					result.workerId = this.workerId;
 					res.statusCode = this.statusCodeDict[result.status];
 					res.end(JSON.stringify(result));
 				} else {
@@ -89,7 +90,7 @@ export default class {
 			}
 		);
 	};
-	updateById = async (
+	public updateById = async (
 		req: IncomingMessage & Params,
 		res: ServerResponse<IncomingMessage & Params>
 	) => {
@@ -111,6 +112,7 @@ export default class {
 						userId,
 						payload
 					);
+					result.workerId = this.workerId;
 					res.statusCode = this.statusCodeDict[result.status];
 					res.end(JSON.stringify(result));
 				} else {
@@ -120,7 +122,7 @@ export default class {
 			}
 		);
 	};
-	deleteById = async (
+	public deleteById = async (
 		req: IncomingMessage & Params,
 		res: ServerResponse<IncomingMessage & Params>
 	) => {
@@ -131,6 +133,7 @@ export default class {
 		);
 		if (validateResult.status === 'OK') {
 			const result = await this.usersMsgCRUD.deleteById(userId);
+			result.workerId = this.workerId;
 			res.statusCode = this.statusCodeDict[result.status];
 			res.end(JSON.stringify(result));
 		} else {

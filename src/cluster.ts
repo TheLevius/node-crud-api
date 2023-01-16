@@ -108,9 +108,9 @@ if (cluster.isPrimary) {
 	});
 	const apiRouter = new Router();
 
-	apiRouter.get('/api/users', usersMsgController.getAll);
-	apiRouter.get('/api/users/:id', usersMsgController.getOneById);
-	apiRouter.post('/api/users', usersMsgController.createUser);
+	apiRouter.get('/api/users', usersMsgController.findAll);
+	apiRouter.get('/api/users/:id', usersMsgController.findOneById);
+	apiRouter.post('/api/users', usersMsgController.create);
 	apiRouter.put('/api/users/:id', usersMsgController.updateById);
 	apiRouter.delete('/api/users/:id', usersMsgController.deleteById);
 

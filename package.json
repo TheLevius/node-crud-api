@@ -6,6 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"start:prod": "tsc && node ./dist/index.js",
+		"start:prod:multi": "tsc && node ./dist/cluster.js",
 		"build": "tsc",
 		"start:dev": "nodemon -e ts -w ./src -x ts-node ./src/index.ts",
 		"start:multi": "nodemon -e ts -w ./src -x ts-node ./src/cluster.ts",
