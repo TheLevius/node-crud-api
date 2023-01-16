@@ -74,10 +74,8 @@ if (cluster.isPrimary) {
 					body.push(chunk);
 				})
 				.on('end', () => {
-					for (const [header, value] of Object.entries(
-						response.headers
-					)) {
-						res.setHeader(header, value ?? '');
+					for (const header of Object.keys(response.headers)) {
+						res.setHeader(header, response.headers[header] ?? '');
 					}
 					res.statusCode = response.statusCode ?? res.statusCode;
 					res.write(body.join().toString());

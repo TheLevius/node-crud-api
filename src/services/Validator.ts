@@ -13,9 +13,14 @@ export default class {
 		if (!Array.isArray(schemaProps) || schemaProps.length === 0) {
 			return { errors: ['Invalid Schema'], status: Statuses.ERROR };
 		}
-
+		const serializedObj = schemaProps.reduce((acc, { key }) => {
+			if (Object.hasOwn(obj, key)) {
+				acc[key] = obj[key];
+			}
+			return acc;
+		}, {});
 		const errors: Prop[] = schemaProps.reduce((acc: Prop[], prop) => {
-			const checkPropResult = this.validateProp(obj, prop);
+			const checkPropResult = this.validateProp(serializedObj, prop);
 			if (checkPropResult?.errors && checkPropResult.errors.length > 0) {
 				acc.push(checkPropResult);
 			}
@@ -74,16 +79,18 @@ export default class {
 	private notNull = (prop: Prop, obj: object): boolean =>
 		obj[prop.key] !== null;
 	private required = (prop: Prop, obj: object): boolean =>
-		Object.hasOwn(obj, prop.key);
+		Object.hasOwn(obj, prop.key) && obj[prop.key] !== undefined;
 	private properType = (prop: Prop, obj: object): boolean => {
 		const currentTableType = typeof obj[prop.key];
 		if (!Object.hasOwn(obj, prop.key)) {
 			return true;
 		}
 		if (currentTableType === 'object') {
+			const isArrayCheck =
+				prop.expectTypes?.includes('array') &&
+				Array.isArray(obj[prop?.key]);
 			return (
-				prop.expectTypes?.includes(currentTableType) ||
-				Array.isArray(obj[prop.key])
+				prop.expectTypes?.includes(currentTableType) || !!isArrayCheck
 			);
 		}
 		return prop?.expectTypes?.includes(currentTableType) || false;
@@ -94,9 +101,11 @@ export default class {
 			return false;
 		}
 
-		return !obj[prop.key].some((value: unknown) => {
-			return !expectArrayOf.includes(typeof value);
-		});
+		return (
+			!obj[prop.key]?.some((value: unknown) => {
+				return !expectArrayOf.includes(typeof value);
+			}) || false
+		);
 	};
 	private isProperId = (prop: Prop, obj: object): boolean =>
 		isUuid(obj[prop.key]);

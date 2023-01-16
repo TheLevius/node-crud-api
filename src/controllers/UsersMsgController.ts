@@ -6,6 +6,11 @@ import {
 } from '../services/UsersCRUD.js';
 import UsersMsgCRUD from '../services/UsersMsgCRUD.js';
 import Validator, { Prop } from '../services/Validator.js';
+import {
+	createUserSchema,
+	idCheckSchema,
+	updateUserSchema,
+} from './UsersController.js';
 
 const statusCodeDict: StatusCodeDict = {
 	OK: 200,
@@ -143,54 +148,6 @@ export default class {
 	};
 }
 
-const idCheckSchema: Prop[] = [
-	{
-		key: 'id',
-		checks: ['required', 'properType', 'isProperId'],
-		expectTypes: ['string'],
-	},
-];
-const createUserSchema: Prop[] = [
-	{
-		key: 'username',
-		checks: ['properType'],
-		expectTypes: ['string'],
-	},
-	{
-		key: 'age',
-		checks: ['properType'],
-		expectTypes: ['number'],
-	},
-	{
-		key: 'hobbies',
-		checks: ['properType', 'isArrayOf'],
-		expectTypes: ['array'],
-		expectArrayOf: ['string'],
-	},
-];
-const updateUserSchema: Prop[] = [
-	{
-		key: 'id',
-		checks: ['properType', 'isProperId'],
-		expectTypes: ['string'],
-	},
-	{
-		key: 'username',
-		checks: ['properType'],
-		expectTypes: ['string'],
-	},
-	{
-		key: 'age',
-		checks: ['properType'],
-		expectTypes: ['number'],
-	},
-	{
-		key: 'hobbies',
-		checks: ['properType', 'isArrayOf'],
-		expectTypes: ['array'],
-		expectArrayOf: ['string'],
-	},
-];
 type StatusCodeDict = {
 	[key: string]: 200 | 201 | 204 | 400 | 404;
 };

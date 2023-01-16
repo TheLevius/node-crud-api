@@ -117,14 +117,14 @@ export default class {
 	};
 }
 
-const idCheckSchema: Prop[] = [
+export const idCheckSchema: Prop[] = [
 	{
 		key: 'id',
 		checks: ['required', 'properType', 'isProperId'],
 		expectTypes: ['string'],
 	},
 ];
-const createUserSchema: Prop[] = [
+export const createUserSchema: Prop[] = [
 	{
 		key: 'username',
 		checks: ['properType'],
@@ -142,7 +142,7 @@ const createUserSchema: Prop[] = [
 		expectArrayOf: ['string'],
 	},
 ];
-const updateUserSchema: Prop[] = [
+export const updateUserSchema: Prop[] = [
 	{
 		key: 'id',
 		checks: ['properType', 'isProperId'],
