@@ -17,11 +17,11 @@ git checkout task-3-crud-api
 
 ```
 
-Install the best and fastest package manager for Node.js "pnpm" globally
+Install the best and fastest package manager for Node.js "pnpm" instead "npm" globally
 
 ```
 
-pnpm install
+pnpm install // npm install
 
 ```
 
@@ -40,7 +40,7 @@ Run the application in development mode
 
 ```
 
-pnpm start:dev
+pnpm start:dev // npm run start:dev
 
 ```
 
@@ -48,7 +48,7 @@ Run the application in production mode
 
 ```
 
-pnpm start:prod
+pnpm start:prod // npm run start:prod
 
 ```
 
@@ -56,7 +56,7 @@ Run tests scenarios for API
 
 ```
 
-pnpm test
+pnpm test // npm run test
 
 ```
 
@@ -64,7 +64,7 @@ Run cluster mode with default load balancer and one in-memory-database for all w
 
 ```
 
-pnpm start:multi
+pnpm start:multi // npm run start:multi
 
 ```
 

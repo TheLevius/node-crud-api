@@ -185,5 +185,47 @@ describe(`${route} Operations with incorrect path and body`, () => {
 		});
 		expect(userCreatedResponse.status).toBe(400);
 	});
+	it(`POST Should return 400 Bad Request with incorrect types in body array`, async () => {
+		const userCreatedResponse = await server.post(`${route}`).send({
+			age: 30,
+			hobbies: [null, 24],
+		});
+		expect(userCreatedResponse.status).toBe(400);
+	});
+	it(`POST Should return 400 Bad Request with empty body array`, async () => {
+		const userCreatedResponse = await server.post(`${route}`).send({});
+		expect(userCreatedResponse.status).toBe(400);
+	});
+
+	it(`PUT shouldn't update user with incorrect types in body 400`, async () => {
+		const userCreatedResponse = await server
+			.post(`${route}/`)
+			.send(newUser);
+		expect(userCreatedResponse.status).toBe(201);
+		const { user } = userCreatedResponse.body;
+		const updateUserResponse = await server
+			.put(`${route}/${user.id}`)
+			.send({
+				age: 'some',
+				username: 20,
+			});
+		expect(updateUserResponse.status).toBe(400);
+	});
+	it(`PUT should update user with unnecessary fields correct with 200`, async () => {
+		const userCreatedResponse = await server
+			.post(`${route}/`)
+			.send(newUser);
+		expect(userCreatedResponse.status).toBe(201);
+		const { user } = userCreatedResponse.body;
+		const updateUserResponse = await server
+			.put(`${route}/${user.id}`)
+			.send({
+				age: 27,
+				username: 'CorrectUserName',
+				somefield: 0,
+				wow: ['Unnecessary'],
+			});
+		expect(updateUserResponse.status).toBe(200);
+	});
 });
 app.close();
